@@ -7,18 +7,30 @@ local PlayerToTeleport
 local HipHeight = Speaker.Character.Humanoid.HipHeight
 local ESPColor
 local EspWhile = true
+local ESPOnTop
+local Highlight
+local ESPTransparency
 
-local function ESP(Color, turn)
+local function ESP(Color, Transparency, OnTop, turn)
 	for i = 1, #Players:GetChildren() do
-		if turn == "Create" then
-			if not Players:GetChildren()[i].Character:FindFirstChild("Highlight") then
-				local Highlight = Instance.new("Highlight")
-				Highlight.FillColor = Color
+		local TCharacter = Players:GetChildren()[i].Character
+		if TCharacter then
+			if turn == "Create" then
+				if not TCharacter:FindFirstChild("Highlight") then
+					Highlight = Instance.new("Highlight")
+				else
+					Highlight = Players:GetChildren()[i].Character:FindFirstChild("Highlight")
+				end
 				Highlight.Parent = Players:GetChildren()[i].Character
-			end
-		else
-			if Players:GetChildren()[i].Character:FindFirstChild("Highlight") then
-				Players:GetChildren()[i].Character:FindFirstChild("Highlight"):Destroy()
+				Players:GetChildren()[i].Character:FindFirstChild("Highlight").Enabled = true
+
+				Highlight.FillColor = Color
+				Highlight.FillTransparency = Transparency
+				Highlight.DepthMode = OnTop
+			else
+				if TCharacter:FindFirstChild("Highlight") then
+					Players:GetChildren()[i].Character:FindFirstChild("Highlight").Enabled = false
+				end
 			end
 		end
 	end
@@ -109,6 +121,29 @@ local ColorPicker = Character:CreateColorPicker({
     end
 })
 
+local DepthModeDropdown = Character:CreateDropdown({
+	Name = "DepthMode",
+	Options = {"Occluded", "AlwaysOnTop"},
+	CurrentOption = {"AlwaysOnTop"},
+	MultipleOptions = false,
+	Flag = "DepthModeDropdown",
+	Callback = function(Options)
+		ESPOnTop = table.concat(Options)
+	end,
+})
+
+local ESPTransparencySlider = Character:CreateSlider({
+    Name = "Transparency",
+    Range = {0, 1},
+    Increment = 0.1,
+    Suffix = "",
+    CurrentValue = 0.5,
+    Flag = "ESPTransparency",
+    Callback = function(Value)
+        ESPTransparency = Value
+    end,
+})
+
 local ESPToggle = Character:CreateToggle({
     Name = "Turn ESP",
     CurrentValue = false,
@@ -117,13 +152,16 @@ local ESPToggle = Character:CreateToggle({
 		if Value then
 			EspWhile = true
 			while EspWhile do
-				ESP(ESPColor, "Create")
+				if ESPColor == nil then ESPColor = Color3.fromRGB(225, 225, 225) end
+				if ESPOnTop == nil then ESPOnTop = "AlwaysOnTop" end
+				if ESPTransparency == nil then ESPTransparency = 0.5 end
+				ESP(ESPColor, ESPTransparency, ESPOnTop, "Create")
 				task.wait()
 			end
 		end
         if not Value then
 			EspWhile = false
-            ESP(ESPColor, "Destroy")
+            ESP(ESPColor, false, false, "Destroy")
         end
     end,
 })
