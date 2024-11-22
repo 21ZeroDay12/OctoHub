@@ -46,7 +46,7 @@ local Window = Rayfield:CreateWindow({
    Name = "OctoHub",
    Icon = 0,
    LoadingTitle = "Octopus Hub is Currently Loading...",
-   LoadingSubtitle = "",
+   LoadingSubtitle = "Please Wait...",
    Theme = "Default",
    DisableRayfieldPrompts = true,
 })
@@ -183,5 +183,20 @@ local TeleportButton = Teleport:CreateButton({
     Name = "Teleport",
     Callback = function()
         Speaker.Character.HumanoidRootPart.CFrame = game.Players[tostring(PlayerToTeleport)].Character.HumanoidRootPart.CFrame
+    end,
+})
+
+local Other = Window:CreateTab("Other", 4483362458)
+
+local IYButton = Other:CreateButton({
+    Name = "Infinite Yield",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/edgeiy/infiniteyield/master/source"))()
+    end,
+})
+local DexButton = Other:CreateButton({
+    Name = "Moon Dex",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/21ZeroDay12/OctoHub/refs/heads/main/Dex?token=GHSAT0AAAAAACZSKKJA54SE2C42UZQVTSXYZ2AIXAQ"))()
     end,
 })
