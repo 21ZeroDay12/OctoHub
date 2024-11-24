@@ -1,6 +1,14 @@
+--Librarys and Services
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local RunService = game:GetService("RunService")
 
+-- Places
+local RagdollEngine = 11998821664
+
+-- Variables
+local GameTab
 local Speaker = game.Players.LocalPlayer
+local ShiftLock = Speaker.DevEnableMouseLock
 local Players = game.Players
 local ListPlayers = {}
 local PlayerToTeleport
@@ -10,6 +18,57 @@ local EspWhile = true
 local ESPOnTop
 local Highlight
 local ESPTransparency
+
+
+local speaker = game.Players.LocalPlayer
+
+local function toggleExploit(enable)
+    local genv = getgenv()
+
+    if enable then
+        genv.noclipEnabled = true
+        genv.walkflinging = true
+
+        local humanoid = speaker.Character and speaker.Character:FindFirstChildWhichIsA("Humanoid")
+        if humanoid then
+            humanoid.Died:Connect(function()
+                genv.walkflinging = false
+            end)
+        end
+
+        repeat
+            RunService.Heartbeat:Wait()
+
+            local character = speaker.Character
+            local root = character.HumanoidRootPart
+            local vel, movel = nil, 0.1
+
+            while not (character and character.Parent and root and root.Parent) do
+                RunService.Heartbeat:Wait()
+                character = speaker.Character
+                root = getRoot(character)
+            end
+
+            vel = root.Velocity
+            root.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
+
+            RunService.RenderStepped:Wait()
+            if character and character.Parent and root and root.Parent then
+                root.Velocity = vel
+            end
+
+            RunService.Stepped:Wait()
+            if character and character.Parent and root and root.Parent then
+                root.Velocity = vel + Vector3.new(0, movel, 0)
+                movel = movel * -1
+            end
+        until not genv.walkflinging
+    else
+        genv.noclipEnabled = false
+        genv.walkflinging = false
+    end
+end
+
 
 local function ESP(Color, Transparency, OnTop, turn)
 	for i = 1, #Players:GetChildren() do
@@ -50,8 +109,44 @@ local Window = Rayfield:CreateWindow({
    Theme = "Default",
    DisableRayfieldPrompts = true,
 })
+if game.PlaceId == RagdollEngine then
+	GameTab = Window:CreateTab("Ragdoll Engine", 4483362458)
 
-local Game = Window:CreateTab("Game", 4483362458)
+	local RagdollToggle = GameTab:CreateToggle({
+		Name = "AntiRagdoll",
+		CurrentValue = false,
+		Flag = "RagdollToggle",
+		Callback = function(Value)
+			if Value then
+				Speaker.Character["Local Ragdoll"].Enabled = false
+			else
+				Speaker.Character["Local Ragdoll"].Enabled = true
+			end
+		end,
+	})
+	local Divider = GameTab:CreateDivider()
+else
+	GameTab = Window:CreateTab("Unexpected Game", 4483362458)
+end
+local GravitySlider = GameTab:CreateSlider({
+    Name = "Gravity",
+    Range = {0, 350},
+    Increment = 1,
+    Suffix = "",
+    CurrentValue = 198,
+    Flag = "GravitySlider",
+    Callback = function(Value)
+        game.Workspace.Gravity = Value
+    end,
+})
+
+local ResetGraviyButton = GameTab:CreateButton({
+    Name = "Reset",
+    Callback = function()
+        GravitySlider:Set(198)
+		game.Workspace.Gravity = 198
+    end,
+})
 
 local Character = Window:CreateTab("Character", 4483362458)
 local MovementSection = Character:CreateSection("Movement")
@@ -109,7 +204,6 @@ local GlideToggle = Character:CreateToggle({
 })
 
 local Divider = Character:CreateDivider()
-
 local ESPSection = Character:CreateSection("ESP")
 
 local ColorPicker = Character:CreateColorPicker({
@@ -166,6 +260,36 @@ local ESPToggle = Character:CreateToggle({
     end,
 })
 
+local D2ivider = Character:CreateDivider()
+local FlingSection = Character:CreateSection("Fling")
+
+local WalkFlingToggle = Character:CreateToggle({
+    Name = "WalkFling",
+    CurrentValue = false,
+    Flag = "WalkFlingToggle",
+    Callback = function(Value)
+		if Value then
+			toggleExploit(true)
+		else
+			toggleExploit(false)
+		end
+    end,
+})
+local D2ivider = Character:CreateDivider()
+local ScriptsSection = Character:CreateSection("ShiftLock")
+local ShiftLockToggle = Character:CreateToggle({
+    Name = "ShiftLock Toggle",
+    CurrentValue = ShiftLock,
+    Flag = "ShiftLock",
+    Callback = function(Value)
+		if Value then
+			Speaker.DevEnableMouseLock = true
+		else
+			Speaker.DevEnableMouseLock = false
+		end
+    end,
+})
+
 local Teleport = Window:CreateTab("Teleport", 4483362458)
 RefreshPlayers()
 local PlayersDropdown = Teleport:CreateDropdown({
@@ -187,7 +311,7 @@ local TeleportButton = Teleport:CreateButton({
 })
 
 local Other = Window:CreateTab("Other", 4483362458)
-
+local ScriptsSection = Other:CreateSection("Most Popular")
 local IYButton = Other:CreateButton({
     Name = "Infinite Yield",
     Callback = function()
@@ -197,6 +321,6 @@ local IYButton = Other:CreateButton({
 local DexButton = Other:CreateButton({
     Name = "Moon Dex",
     Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/21ZeroDay12/OctoHub/refs/heads/main/Dex?token=GHSAT0AAAAAACZSKKJA54SE2C42UZQVTSXYZ2AIXAQ"))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/21ZeroDay12/Dex/refs/heads/main/Dex.lua"))()
     end,
 })
