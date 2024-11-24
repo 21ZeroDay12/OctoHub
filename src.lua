@@ -128,6 +128,8 @@ if game.PlaceId == RagdollEngine then
 else
 	GameTab = Window:CreateTab("Unexpected Game", 4483362458)
 end
+
+local WorkspaceSection = GameTab:CreateSection("Workspace")
 local GravitySlider = GameTab:CreateSlider({
     Name = "Gravity",
     Range = {0, 350},
@@ -148,6 +150,7 @@ local ResetGraviyButton = GameTab:CreateButton({
     end,
 })
 
+local D2ivider = GameTab:CreateDivider()
 local Character = Window:CreateTab("Character", 4483362458)
 local MovementSection = Character:CreateSection("Movement")
 
@@ -290,7 +293,11 @@ local ShiftLockToggle = Character:CreateToggle({
     end,
 })
 
+local D2ivider = Character:CreateDivider()
 local Teleport = Window:CreateTab("Teleport", 4483362458)
+
+local ScriptsSection = Teleport:CreateSection("PlayersTP")
+
 RefreshPlayers()
 local PlayersDropdown = Teleport:CreateDropdown({
 	Name = "Players",
@@ -300,16 +307,19 @@ local PlayersDropdown = Teleport:CreateDropdown({
 	Flag = "PlayersDropdown",
 	Callback = function(Options)
 		PlayerToTeleport = table.concat(Options)
+		RefreshPlayers()
 	end,
 })
 
 local TeleportButton = Teleport:CreateButton({
     Name = "Teleport",
     Callback = function()
+		RefreshPlayers()
         Speaker.Character.HumanoidRootPart.CFrame = game.Players[tostring(PlayerToTeleport)].Character.HumanoidRootPart.CFrame
     end,
 })
 
+local D2ivider = Teleport:CreateDivider()
 local Other = Window:CreateTab("Other", 4483362458)
 local ScriptsSection = Other:CreateSection("Most Popular")
 local IYButton = Other:CreateButton({
@@ -324,3 +334,5 @@ local DexButton = Other:CreateButton({
         loadstring(game:HttpGet("https://raw.githubusercontent.com/21ZeroDay12/Dex/refs/heads/main/Dex.lua"))()
     end,
 })
+
+local D2ivider = Other:CreateDivider()
