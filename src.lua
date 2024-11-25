@@ -1,14 +1,23 @@
+--[[
+	Credits:
+
+	Sirius,
+	Infinite Yield
+]]
 --Librarys and Services
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 -- Places
 local RagdollEngine = 11998821664
 
 -- Variables
+local FlyMode
 local GameTab
 local Speaker = game.Players.LocalPlayer
-local ShiftLock = Speaker.DevEnableMouseLock
 local Players = game.Players
 local ListPlayers = {}
 local PlayerToTeleport
@@ -18,10 +27,73 @@ local EspWhile = true
 local ESPOnTop
 local Highlight
 local ESPTransparency
+local speaker = Speaker
+local localPlayer = Speaker
+local Turn
+local FlyHeartbeat
 
+local function FlyToggle(FlyMode)
+	FlyHeartbeat = RunService.Heartbeat:Connect(function()
+		local character = localPlayer.Character
+		local primaryPart = character and character.PrimaryPart
+		if primaryPart then
+			
+			local bodyVelocity = primaryPart:FindFirstChild("FlyBodyVelocity") or Instance.new("BodyVelocity")
+			bodyVelocity.Name = "FlyBodyVelocity"
+			bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
 
-local speaker = game.Players.LocalPlayer
+			local bodyGyro = primaryPart:FindFirstChild("FlyBodyGyro") or Instance.new("BodyGyro")
+			bodyGyro.Name = "FlyBodyGyro"
+			bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+			bodyGyro.P = 9e4
 
+			local camCFrame = workspace.CurrentCamera.CFrame
+			local velocity = Vector3.zero
+			local rotation = camCFrame.Rotation
+
+			if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+				velocity += camCFrame.LookVector
+				rotation *= CFrame.Angles(math.rad(-40), 0, 0)
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+				velocity -= camCFrame.LookVector
+				rotation *= CFrame.Angles(math.rad(40), 0, 0)
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+				velocity += camCFrame.RightVector
+				rotation *= CFrame.Angles(0, 0, math.rad(-40))
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+				velocity -= camCFrame.RightVector
+				rotation *= CFrame.Angles(0, 0, math.rad(40))
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+				velocity += Vector3.new(0, 1, 0)
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+				velocity -= Vector3.new(0, 1, 0)
+			end
+
+			local tweenInfo = TweenInfo.new(0.5)
+			TweenService:Create(bodyVelocity, tweenInfo, { Velocity = velocity * 45 }):Play()
+			bodyVelocity.Parent = primaryPart
+			
+			TweenService:Create(bodyGyro, tweenInfo, { CFrame = rotation }):Play()
+			bodyGyro.Parent = primaryPart
+			if FlyMode == "Normal" then
+				
+				Speaker.Character.Humanoid.PlatformStand = true
+			end
+			if not Turn then
+				task.wait()
+				Speaker.Character.Humanoid.PlatformStand = false
+				Speaker.Character.HumanoidRootPart.FlyBodyGyro:Destroy()
+				Speaker.Character.HumanoidRootPart.FlyBodyVelocity:Destroy()
+				FlyHeartbeat:Disconnect()
+			end
+		end
+	end)
+end
 local function toggleExploit(enable)
     local genv = getgenv()
 
@@ -128,8 +200,6 @@ if game.PlaceId == RagdollEngine then
 else
 	GameTab = Window:CreateTab("Unexpected Game", 4483362458)
 end
-
-local WorkspaceSection = GameTab:CreateSection("Workspace")
 local GravitySlider = GameTab:CreateSlider({
     Name = "Gravity",
     Range = {0, 350},
@@ -150,7 +220,6 @@ local ResetGraviyButton = GameTab:CreateButton({
     end,
 })
 
-local D2ivider = GameTab:CreateDivider()
 local Character = Window:CreateTab("Character", 4483362458)
 local MovementSection = Character:CreateSection("Movement")
 
@@ -183,8 +252,8 @@ local ResetButton = Character:CreateButton({
         JumpPower:Set(50)
     end,
 })
-local Divider = Character:CreateDivider()
 
+local Divider = Character:CreateDivider()
 local ActionsSection = Character:CreateSection("Actions")
 
 local ResetButton = Character:CreateButton({
@@ -278,26 +347,39 @@ local WalkFlingToggle = Character:CreateToggle({
 		end
     end,
 })
+
 local D2ivider = Character:CreateDivider()
-local ScriptsSection = Character:CreateSection("ShiftLock")
-local ShiftLockToggle = Character:CreateToggle({
-    Name = "ShiftLock Toggle",
-    CurrentValue = ShiftLock,
-    Flag = "ShiftLock",
+local FlingSection = Character:CreateSection("Fly")
+
+local FlyModeDropdown = Character:CreateDropdown({
+	Name = "Mode",
+	Options = {"Normal", "Bypass a little"},
+	CurrentOption = {"Normal"},
+	MultipleOptions = false,
+	Flag = "FlyModeDropdown",
+	Callback = function(Options)
+		FlyMode = table.concat(Options)
+	end,
+})
+
+local FlyToggle = Character:CreateToggle({
+    Name = "Fly",
+    CurrentValue = false,
+    Flag = "FlyToggle",
     Callback = function(Value)
 		if Value then
-			Speaker.DevEnableMouseLock = true
+			Turn = true
+			if FlyMode == nil then FlyMode = "Normal" end
+			FlyToggle(FlyMode)	
 		else
-			Speaker.DevEnableMouseLock = false
+			Turn = false
 		end
     end,
 })
 
 local D2ivider = Character:CreateDivider()
+
 local Teleport = Window:CreateTab("Teleport", 4483362458)
-
-local ScriptsSection = Teleport:CreateSection("PlayersTP")
-
 RefreshPlayers()
 local PlayersDropdown = Teleport:CreateDropdown({
 	Name = "Players",
@@ -307,19 +389,16 @@ local PlayersDropdown = Teleport:CreateDropdown({
 	Flag = "PlayersDropdown",
 	Callback = function(Options)
 		PlayerToTeleport = table.concat(Options)
-		RefreshPlayers()
 	end,
 })
 
 local TeleportButton = Teleport:CreateButton({
     Name = "Teleport",
     Callback = function()
-		RefreshPlayers()
         Speaker.Character.HumanoidRootPart.CFrame = game.Players[tostring(PlayerToTeleport)].Character.HumanoidRootPart.CFrame
     end,
 })
 
-local D2ivider = Teleport:CreateDivider()
 local Other = Window:CreateTab("Other", 4483362458)
 local ScriptsSection = Other:CreateSection("Most Popular")
 local IYButton = Other:CreateButton({
@@ -334,5 +413,3 @@ local DexButton = Other:CreateButton({
         loadstring(game:HttpGet("https://raw.githubusercontent.com/21ZeroDay12/Dex/refs/heads/main/Dex.lua"))()
     end,
 })
-
-local D2ivider = Other:CreateDivider()
