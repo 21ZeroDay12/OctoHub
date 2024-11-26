@@ -1,9 +1,3 @@
---[[
-	Credits:
-
-	Sirius,
-	Infinite Yield
-]]
 --Librarys and Services
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
@@ -15,6 +9,9 @@ local TweenService = game:GetService("TweenService")
 local RagdollEngine = 11998821664
 
 -- Variables
+local Value1
+local i = 0
+local FlySpeed
 local FlyMode
 local GameTab
 local Speaker = game.Players.LocalPlayer
@@ -23,13 +20,11 @@ local ListPlayers = {}
 local PlayerToTeleport
 local HipHeight = Speaker.Character.Humanoid.HipHeight
 local ESPColor
-local EspWhile = true
 local ESPOnTop
 local Highlight
 local ESPTransparency
 local speaker = Speaker
 local localPlayer = Speaker
-local Turn
 local FlyHeartbeat
 
 local function FlyToggle(FlyMode)
@@ -75,20 +70,20 @@ local function FlyToggle(FlyMode)
 			end
 
 			local tweenInfo = TweenInfo.new(0.5)
-			TweenService:Create(bodyVelocity, tweenInfo, { Velocity = velocity * 45 }):Play()
+			if FlySpeed == nil then FlySpeed = 45 end
+			TweenService:Create(bodyVelocity, tweenInfo, { Velocity = velocity * FlySpeed }):Play()
 			bodyVelocity.Parent = primaryPart
 			
 			TweenService:Create(bodyGyro, tweenInfo, { CFrame = rotation }):Play()
 			bodyGyro.Parent = primaryPart
 			if FlyMode == "Normal" then
-				
 				Speaker.Character.Humanoid.PlatformStand = true
 			end
-			if not Turn then
+			if not getgenv().Turn then
 				task.wait()
 				Speaker.Character.Humanoid.PlatformStand = false
-				Speaker.Character.HumanoidRootPart.FlyBodyGyro:Destroy()
-				Speaker.Character.HumanoidRootPart.FlyBodyVelocity:Destroy()
+				bodyVelocity.Parent = nil
+				bodyGyro.Parent = nil
 				FlyHeartbeat:Disconnect()
 			end
 		end
@@ -310,14 +305,21 @@ local ESPTransparencySlider = Character:CreateSlider({
     end,
 })
 
+if i ~= 1 then
+	if getgenv().Value1 == true then 
+		getgenv().EspWhile = false
+	end
+end
+
 local ESPToggle = Character:CreateToggle({
     Name = "Turn ESP",
     CurrentValue = false,
     Flag = "ESPToggle",
     Callback = function(Value)
-		if Value then
-			EspWhile = true
-			while EspWhile do
+		getgenv().Value1 = Value
+		if getgenv().Value1 then
+			getgenv().EspWhile = true
+			while getgenv().EspWhile do
 				if ESPColor == nil then ESPColor = Color3.fromRGB(225, 225, 225) end
 				if ESPOnTop == nil then ESPOnTop = "AlwaysOnTop" end
 				if ESPTransparency == nil then ESPTransparency = 0.5 end
@@ -325,12 +327,19 @@ local ESPToggle = Character:CreateToggle({
 				task.wait()
 			end
 		end
-        if not Value then
-			EspWhile = false
+        if not getgenv().Value1 then
+			getgenv().EspWhile = false
             ESP(ESPColor, false, false, "Destroy")
         end
     end,
 })
+
+if i ~= 1 then
+	if getgenv().Value1 == true then 
+		i = 1
+		ESPToggle:Set(true)
+	end
+end
 
 local D2ivider = Character:CreateDivider()
 local FlingSection = Character:CreateSection("Fling")
@@ -362,20 +371,37 @@ local FlyModeDropdown = Character:CreateDropdown({
 	end,
 })
 
+local FlySpeedSlider = Character:CreateSlider({
+    Name = "Fly Speed",
+    Range = {45, 4500},
+    Increment = 1,
+    Suffix = "",
+    CurrentValue = 45,
+    Flag = "ESPTransparency",
+    Callback = function(Value)
+        FlySpeed = Value
+    end,
+})
+
 local FlyToggle = Character:CreateToggle({
     Name = "Fly",
     CurrentValue = false,
     Flag = "FlyToggle",
     Callback = function(Value)
 		if Value then
-			Turn = true
+			getgenv().Turn = true
 			if FlyMode == nil then FlyMode = "Normal" end
 			FlyToggle(FlyMode)	
 		else
-			Turn = false
+			getgenv().Turn = false
 		end
     end,
 })
+if getgenv().Turn == true then
+	FlyToggle:Set(true)
+else
+	FlyToggle:Set(false)
+end
 
 local D2ivider = Character:CreateDivider()
 
