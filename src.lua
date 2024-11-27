@@ -9,6 +9,8 @@ local TweenService = game:GetService("TweenService")
 local RagdollEngine = 11998821664
 
 -- Variables
+local Mouse = game.Players.LocalPlayer:GetMouse()
+local ClickTpOn
 local WalkSpeed = 16
 local Value1
 local i = 0
@@ -27,6 +29,23 @@ local ESPTransparency
 local speaker = Speaker
 local localPlayer = Speaker
 local FlyHeartbeat
+local InfJumpOn = false
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if ClickTpOn then
+		if input.UserInputType == Enum.UserInputType.MouseButton1 and UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+			print("am gay")
+			game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = Mouse.hit
+		end
+	end
+end)
+
+local function onJumpRequest()
+	if InfJumpOn == true then
+		Speaker.Character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+		Speaker.Character.HumanoidRootPart.Velocity = Vector3.new(0, Speaker.Character.Humanoid.JumpPower, 0)
+	end
+end
 
 local function SwimFly()
 	SwimHeartbeat = RunService.Heartbeat:Connect(function()
@@ -428,9 +447,26 @@ else
 end
 
 local D2ivider = Character:CreateDivider()
+local OtherSection = Character:CreateSection("Other")
+
+local InfJumpToggle = Character:CreateToggle({
+    Name = "Infinity Jump",
+    CurrentValue = false,
+    Flag = "InfJumpToggle",
+    Callback = function(Value)
+		if Value then
+			InfJumpOn = true
+			game:GetService("UserInputService").JumpRequest:Connect(onJumpRequest)
+		else
+			InfJumpOn = false
+		end
+    end,
+})
+local D2ivider = Character:CreateDivider()
 
 local Teleport = Window:CreateTab("Teleport", 4483362458)
 RefreshPlayers()
+local TeleportSection = Teleport:CreateSection("Teleport")
 local PlayersDropdown = Teleport:CreateDropdown({
 	Name = "Players",
 	Options = ListPlayers,
@@ -448,7 +484,22 @@ local TeleportButton = Teleport:CreateButton({
         Speaker.Character.HumanoidRootPart.CFrame = game.Players[tostring(PlayerToTeleport)].Character.HumanoidRootPart.CFrame
     end,
 })
+local D2ivider = Teleport:CreateDivider()
+local ClickTpSection = Teleport:CreateSection("ClickTp")
 
+local ClickTpToggle = Teleport:CreateToggle({
+    Name = "ClickTp (LeftCtrl + LMB)",
+    CurrentValue = false,
+    Flag = "ClickTpToggle",
+    Callback = function(Value)
+		if Value then
+			ClickTpOn = true
+		else
+			ClickTpOn = false
+		end
+    end,
+})
+local D2ivider = Teleport:CreateDivider()
 local Other = Window:CreateTab("Other", 4483362458)
 local ScriptsSection = Other:CreateSection("Most Popular")
 local IYButton = Other:CreateButton({
