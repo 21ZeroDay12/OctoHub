@@ -9,10 +9,11 @@ local TweenService = game:GetService("TweenService")
 local RagdollEngine = 11998821664
 
 -- Variables
+local WalkSpeed = 16
 local Value1
 local i = 0
-local FlySpeed
-local FlyMode
+local FlySpeed = 45
+local FlyMode = "Normal"
 local GameTab
 local Speaker = game.Players.LocalPlayer
 local Players = game.Players
@@ -26,6 +27,17 @@ local ESPTransparency
 local speaker = Speaker
 local localPlayer = Speaker
 local FlyHeartbeat
+
+local function SwimFly()
+	SwimHeartbeat = RunService.Heartbeat:Connect(function()
+		game.Players.LocalPlayer.Character.Humanoid:ChangeState(4)
+		game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = FlySpeed
+		if getgenv().IsSwimFlyOn == false then
+			game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = WalkSpeed
+			SwimHeartbeat:Disconnect()
+		end
+	end)
+end
 
 local function FlyToggle(FlyMode)
 	FlyHeartbeat = RunService.Heartbeat:Connect(function()
@@ -226,6 +238,7 @@ local WalkSpeed = Character:CreateSlider({
     CurrentValue = 16,
     Flag = "WalkSpeed",
     Callback = function(Value)
+		WalkSpeed = Value
         Speaker.Character.Humanoid.WalkSpeed = Value
     end,
 })
@@ -337,7 +350,9 @@ local ESPToggle = Character:CreateToggle({
 if i ~= 1 then
 	if getgenv().Value1 == true then 
 		i = 1
-		ESPToggle:Set(true)
+		ESPToggle:Set(false)
+		getgenv().EspWhile = false
+		ESP(ESPColor, false, false, "Destroy")
 	end
 end
 
@@ -362,7 +377,7 @@ local FlingSection = Character:CreateSection("Fly")
 
 local FlyModeDropdown = Character:CreateDropdown({
 	Name = "Mode",
-	Options = {"Normal", "Bypass a little"},
+	Options = {"Normal", "Bypass a little", "Swim (Mobile)"},
 	CurrentOption = {"Normal"},
 	MultipleOptions = false,
 	Flag = "FlyModeDropdown",
@@ -391,13 +406,22 @@ local FlyToggle = Character:CreateToggle({
 		if Value then
 			getgenv().Turn = true
 			if FlyMode == nil then FlyMode = "Normal" end
-			FlyToggle(FlyMode)	
+			print(FlyMode)
+			if FlyMode ~= "Swim (Mobile)" then
+				print("not swim")
+				FlyToggle(FlyMode)	
+			else
+				print("swim")
+				getgenv().IsSwimFlyOn = true
+				SwimFly()
+			end
 		else
+			getgenv().IsSwimFlyOn = false
 			getgenv().Turn = false
 		end
     end,
 })
-if getgenv().Turn == true then
+if getgenv().Turn == true or getgenv().IsSwimFlyOn == true then
 	FlyToggle:Set(true)
 else
 	FlyToggle:Set(false)
